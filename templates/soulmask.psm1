@@ -1,10 +1,3 @@
-<#
-  Edit configuration in : .\servers\Satisfactory\FactoryGame\Saved\Config\WindowsServer\
-  Modify Game.ini and Engine.ini
-  Instructions here
-  https://satisfactory.fandom.com/wiki/Dedicated_servers
-#>
-
 #Server Name, Always Match the Launcher and config file name.
 $Name = $ServerCfg
 
@@ -17,74 +10,98 @@ $ServerDetails = @{
   #Login username used by SteamCMD
   Login              = "anonymous"
 
+  #Name of the server in the Server Browser
+  SessionName        = "Soulmask"
+
+  #Maximum Number of Players
+  MaxPlayers         = 20
+
+  #Password to join the server *NO SPACES*
+  Password           = ""
+
+  #Admin Password to manage your Server *NO SPACES*
+  AdminPassword      = ""
+
   #Server Port
   Port               = 7777
 
   #Query Port
-  QueryPort          = 15777
+  QueryPort          = 27015
 
-  #Beacon Port
-  Beaconport         = 15000
+  #Enable PVE "True" or "False"
+  ServerPVE          = "True"
 
-  #Rcon IP
-  ManagementIP       = "127.0.0.1"
+  #Turns on game console output. "True" or "False"
+  ServerLog          = "True"
 
-  #Rcon Port
-  ManagementPort     = ""
+  #Specifies the interval for writing game objects to the database (unit: seconds).
+  ServerSaving       = 600
 
-  #Rcon Password
-  ManagementPassword = ""
+  #Specifies the interval for writing the game database to disk (unit: seconds).
+  ServerBackup       = 900
+
+  #Specifies how often (minutes) to automatically back up the world save.
+  BackupInterval     = 10
+
+  #Specifies the local listening address. Use 0.0.0.0 or the local network card address.
+  MultihomeIP        = "0.0.0.0"
+
+  #Maintenance port, used for local telnet server maintenance, TCP, does not need to be open.
+  ManagementPort     = 18888
+
+  #Backs up game saves when the game starts. "True" or "False"
+  InitBackup         = "True"
 
   #---------------------------------------------------------
   # Server Installation Details
   #---------------------------------------------------------
 
   #Name of the Server Instance
-  Name               = $Name
+  Name                   = $Name
 
   #Server Installation Path
-  Path               = ".\servers\$Name"
+  Path                   = ".\servers\$Name"
 
   #Server configuration folder
-  ConfigFolder       = ".\servers\$Name\FactoryGame\Saved\Config\WindowsServer\"
+  ConfigFolder           = ".\servers\$Name\WS\Saved\Config\WindowsServer"
 
   #Steam Server App Id
-  AppID              = 1690800
+  AppID                  = 3017310
 
   #Name of the Beta Build
-  BetaBuild          = ""
+  BetaBuild              = ""
 
   #Beta Build Password
-  BetaBuildPassword  = ""
+  BetaBuildPassword      = ""
 
   #Set to $true if you want this server to automatically update.
-  AutoUpdates        = $true
+  AutoUpdates            = $true
 
   #Set to $true if you want this server to automatically restart on crash.
-  AutoRestartOnCrash = $true
+  AutoRestartOnCrash     = $true
 
   #Set to $true if you want this server to automatically restart at set hour.
-  AutoRestart        = $true
+  AutoRestart            = $true
 
   #The time at which the server will restart daily.
   #(Hour, Minute, Seconds)
-  AutoRestartTime    = @(3, 0, 0)
+  AutoRestartTime        = @(4, 0, 0)
 
   #Process name in the task manager
-  ProcessName        = "FactoryServer-Win64-Shipping-Cmd"
+  ProcessName            = "WSServer-Win64-Shipping"
 
   #Use PID instead of Process Name.
-  UsePID             = $true
+  UsePID                 = $true
 
   #Server Executable
-  Exec               = ".\servers\$Name\FactoryServer.exe"
+  Exec                   = ".\servers\$Name\WSServer.exe"
 
   #Allow force close, usefull for server without RCON and Multiple instances.
-  AllowForceClose    = $true
+  AllowForceClose        = $true
 
   #Process Priority Realtime, High, AboveNormal, Normal, BelowNormal, Low
-  UsePriority        = $true
-  AppPriority        = "High"
+  UsePriority            = $true
+  AppPriority            = "High"
 
   <#
   Process Affinity (Core Assignation)
@@ -102,14 +119,14 @@ $ServerDetails = @{
   2 Cores = > 00000011 = > 3
   #>
 
-  UseAffinity        = $false
-  AppAffinity        = 15
+  UseAffinity            = $false
+  AppAffinity            = 15
 
   #Should the server validate install after installation or update *(recommended)
-  Validate           = $true
+  Validate               = $true
 
   #How long should it wait to check if the server is stable
-  StartupWaitTime    = 10
+  StartupWaitTime        = 10
 }
 #Create the object
 $Server = New-Object -TypeName PsObject -Property $ServerDetails
@@ -123,7 +140,7 @@ $BackupsDetails = @{
   Use   = $true
 
   #Backup Folder
-  Path  = ".\backups\$($Server.Name)"
+  Path  = ".\Backup\$($Server.Name)"
 
   #Number of days of backups to keep.
   Days  = 7
@@ -132,10 +149,7 @@ $BackupsDetails = @{
   Weeks = 4
 
   #Folder to include in backup
-  Saves = "$Env:userprofile\AppData\Local\FactoryGame\Saved"
-
-  #Exclusions (Regex use | as separator)
-  Exclusions = ""
+  Saves = ".\servers\$($Server.Name)\WS\Saved\Worlds\Dedicated\Level01_Main"
 }
 #Create the object
 $Backups = New-Object -TypeName PsObject -Property $BackupsDetails
@@ -148,8 +162,8 @@ $WarningsDetails = @{
   #Use Rcon to restart server softly.
   Use        = $false
 
-  #What protocol to use : RCON, ARRCON, Telnet, Websocket
-  Protocol   = "RCON"
+  #What protocol to use : Rcon, Telnet, Websocket
+  Protocol   = "Telnet"
 
   #Times at which the servers will warn the players that it is about to restart. (in seconds between each timers)
   Timers     = [System.Collections.ArrayList]@(240, 50, 10) #Total wait time is 240+50+10 = 300 seconds or 5 minutes
@@ -161,16 +175,16 @@ $WarningsDetails = @{
   MessageSec = "The server will restart in % seconds !"
 
   #command to send a message.
-  CmdMessage = "say"
+  CmdMessage = ""
 
   #command to save the server
-  CmdSave    = "stats"
+  CmdSave    = ""
 
   #How long to wait in seconds after the save command is sent.
   SaveDelay  = 15
 
   #command to stop the server
-  CmdStop    = "shutdown"
+  CmdStop    = ""
 }
 #Create the object
 $Warnings = New-Object -TypeName PsObject -Property $WarningsDetails
@@ -181,13 +195,31 @@ $Warnings = New-Object -TypeName PsObject -Property $WarningsDetails
 
 #Launch Arguments
 $ArgumentList = @(
+  "Level01_Main ",
+  "-server ",
+  "-UTF8Output ",
+  "-SteamServerName=`"$($Server.SessionName)`" ",
+  "-PSW=`"$($Server.Password)`" ",
+  "-adminpsw=`"$($Server.AdminPassword)`" ",
+  "-MaxPlayers=$($Server.MaxPlayers) ",
+  "-backup=$($Server.ServerBackup) ",
+  "-saving=$($Server.ServerSaving) ",
+  "-MULTIHOME=`"$($Server.MultihomeIP)`" ",
   "-Port=$($Server.Port) ",
-  "-ServerQueryPort=$($Server.QueryPort) ",
-  "-BeaconPort=$($Server.Beaconport) ",
-  "-log ",
-  "-unattended"
-
+  "-QueryPort=$($Server.QueryPort) ",
+  "-EchoPort=$($Server.ManagementPort) ",
+  "-backupinterval=$($Server.BackupInterval) ",
+  "-forcepassthrough "
 )
+
+if ($Server.ServerLog -eq "True") {
+  $ArgumentList += "-log "
+}
+
+if ($Server.InitBackup -eq "True") {
+  $ArgumentList += "-initbackup "
+}
+
 Add-Member -InputObject $Server -Name "ArgumentList" -Type NoteProperty -Value $ArgumentList
 Add-Member -InputObject $Server -Name "Launcher" -Type NoteProperty -Value "$($Server.Exec)"
 Add-Member -InputObject $Server -Name "WorkingDirectory" -Type NoteProperty -Value "$($Server.Path)"
@@ -198,7 +230,7 @@ Add-Member -InputObject $Server -Name "WorkingDirectory" -Type NoteProperty -Val
 
 function Start-ServerPrep {
 
-  Write-ScriptMsg "Port Forward : $($Server.Port), $($Server.QueryPort), $($Server.Beaconport) in TCP and UDP to $($Global.InternalIP)"
+  Write-ScriptMsg "Port Forward : $($Server.Port), $($Server.Port+1) and $($Server.QueryPort) in TCP & UDP to $($Global.InternalIP)"
 
 }
 
